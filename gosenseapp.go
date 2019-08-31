@@ -19,10 +19,11 @@ import (
 )
 
 type DeviceMetadata struct {
-	Name       string             `yaml:"name" json:"name"`
-	MAC        string             `yaml:"mac" json:"mac"`
-	SensorType gosense.SensorType `yaml:"sensorType" json:"sensorType"`
-	Present    bool               `yaml:"present" json:"present"`
+	Name        string             `yaml:"name" json:"name"`
+	MAC         string             `yaml:"mac" json:"mac"`
+	SensorType  gosense.SensorType `yaml:"sensorType" json:"sensorType"`
+	DeivceClass string             `yaml:"deviceClass" json:"deviceClass"`
+	Present     bool               `yaml:"present" json:"present"`
 }
 
 type DeviceProperties struct {
@@ -177,26 +178,29 @@ func Run() {
 		log.Error(err.Error())
 		os.Exit(3)
 	}
-
 	SenseData.Lock()
 	for _, mac := range sensors {
-		sensor, ok := SenseData.AppConfig.Sensors[mac]
+		if mac != "" {
+			log.Debugf("Parsing info for %s", mac)
+			sensor, ok := SenseData.AppConfig.Sensors[mac]
+			if !ok {
+				sensor = &Sensor{
+					Metadata: DeviceMetadata{
+						Name:    mac,
+						MAC:     mac,
+						Present: true,
+					},
+					Properties: make(map[string]string),
+				}
 
-		if !ok {
-			sensor = &Sensor{
-				Metadata: DeviceMetadata{
-					Name:    mac,
-					MAC:     mac,
-					Present: true,
-				},
-				Properties: make(map[string]string),
+				SenseData.AppConfig.Sensors[mac] = sensor
 			}
 
-			SenseData.AppConfig.Sensors[mac] = sensor
-		}
-
-		if mqtt != nil {
-			mqtt.sensorch <- *sensor
+			if mqtt != nil {
+				mqtt.sensorch <- *sensor
+			}
+		} else {
+			log.Error("Empty MAC encountered")
 		}
 	}
 	SenseData.Unlock()

@@ -17,6 +17,7 @@ type binarySensor struct {
 	PayloadOn              string `yaml:"payload_on" json:"payload_on"`
 	PayloadOff             string `yaml:"payload_off" json:"payload_off"`
 	StateTopic             string `yaml:"state_topic" json:"state_topic"`
+	DeviceClass            string `yaml:"device_class" json:"device_class"`
 	ValueTemplate          string `yaml:"value_template" json:"value_template"`
 	JSONAttributesTopic    string `yaml:"json_attributes_topic" json:"json_attributes_topic"`
 	JSONAttributesTemplate string `yaml:"json_attributes_template" json:"json_attributes_template"`
@@ -43,6 +44,7 @@ func binarySensorConfigFromSensor(topic string, v *Sensor) binarySensor {
 		PayloadOn:              "1",
 		PayloadOff:             "0",
 		StateTopic:             sensorTopic,
+		DeviceClass:            v.Metadata.DeivceClass,
 		ValueTemplate:          "{{ value_json.properties.state }}",
 		JSONAttributesTopic:    sensorTopic,
 		JSONAttributesTemplate: "{{ value_json.properties | tojson }}",
